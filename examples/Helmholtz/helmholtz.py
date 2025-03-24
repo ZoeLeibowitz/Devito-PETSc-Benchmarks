@@ -1,10 +1,11 @@
 import os
+import numpy as np
 
 from devito.symbolics import retrieve_functions, INT
-import pandas as pd
 from matplotlib import pyplot as plt
-from devito import configuration, Operator, Eq, Grid, Function
-from devito.petsc import PETScSolve, EssentialBC
+from devito import (configuration, Operator, Eq, Grid, Function,
+                    SubDomain, switchconfig)
+from devito.petsc import PETScSolve
 from devito.petsc.initialize import PetscInitialize
 configuration['opt'] = 'noop'
 configuration['compiler'] = 'custom'
@@ -29,6 +30,7 @@ so = 2
 
 class SubTop(SubDomain):
     name = 'subtop'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -36,10 +38,11 @@ class SubTop(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('middle', 1, 1), y: ('right', self.S_O//2)}
-sub1 = SubTop(so)
+
 
 class SubBottom(SubDomain):
     name = 'subbottom'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -47,10 +50,11 @@ class SubBottom(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('middle', 1, 1), y: ('left', self.S_O//2)}
-sub2 = SubBottom(so)
+
 
 class SubLeft(SubDomain):
     name = 'subleft'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -58,10 +62,11 @@ class SubLeft(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('left', self.S_O//2), y: ('middle', 1, 1)}
-sub3 = SubLeft(so)
+
 
 class SubRight(SubDomain):
     name = 'subright'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -69,36 +74,38 @@ class SubRight(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('right', self.S_O//2), y: ('middle', 1, 1)}
-sub4 = SubRight(so)
 
 
 class SubPointBottomLeft(SubDomain):
     name = 'subpointbottomleft'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('left', 1), y: ('left', 1)}
-sub5 = SubPointBottomLeft()
+
 
 class SubPointBottomRight(SubDomain):
     name = 'subpointbottomright'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('right', 1), y: ('left', 1)}
-sub6 = SubPointBottomRight()
+
 
 class SubPointTopLeft(SubDomain):
     name = 'subpointtopleft'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('left', 1), y: ('right', 1)}
-sub7 = SubPointTopLeft()
+
 
 class SubPointTopRight(SubDomain):
     name = 'subpointtopright'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('right', 1), y: ('right', 1)}
-sub8 = SubPointTopRight()
 
 
 def neumann_bottom(eq, subdomain):
@@ -159,7 +166,8 @@ def neumann_left(eq, subdomain):
         xind = f.indices[-2]
         if (xind - x).as_coeff_Mul()[0] < 0:
             # Symmetric mirror
-            # Substitute where index is negative for +ve where index is positive
+            # Substitute where index is negative for +ve where
+            # index is positive
             mapper.update({f: f.subs({xind: INT(abs(xind))})})
 
     return Eq(lhs.subs(mapper), rhs.subs(mapper), subdomain=subdomain)
@@ -184,6 +192,16 @@ def neumann_right(eq, subdomain):
             mapper.update({f: f.subs({xind: tmp})})
 
     return Eq(lhs.subs(mapper), rhs.subs(mapper), subdomain=subdomain)
+
+
+sub1 = SubTop(so)
+sub2 = SubBottom(so)
+sub3 = SubLeft(so)
+sub4 = SubRight(so)
+sub5 = SubPointBottomLeft()
+sub6 = SubPointBottomRight()
+sub7 = SubPointTopLeft()
+sub8 = SubPointTopRight()
 
 
 def analytical_solution(x, y):
@@ -241,7 +259,7 @@ assert slope < 2.1
 
 # Plot convergence
 plt.figure(figsize=(8, 6))
-plt.loglog(dx, errors, 'o-', label=f'Error (Slope: {slope:.2f})')
+plt.loglog(h, errors, 'o-', label=f'Error (Slope: {slope:.2f})')
 plt.xlabel("h")
 plt.ylabel("Error")
 plt.title("Convergence Plot: Error vs. dx")

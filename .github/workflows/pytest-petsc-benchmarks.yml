@@ -54,10 +54,10 @@ jobs:
       run: |
           echo "RUN_CMD=docker run --rm -t -v $(pwd):/app -w /app -e CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }} --name testrun zoeleibowitz/devito_img:latest"  >> $GITHUB_ENV
 
-- name: Set tests
-  run: |
-      echo "TESTS='tests/test_petsc.py examples/Helmholtz/helmholtz.py'" >> $GITHUB_ENV
-  id: set-tests
+    - name: Set tests
+      run: |
+          echo "TESTS='tests/test_petsc.py examples/Helmholtz/helmholtz.py'" >> $GITHUB_ENV
+      id: set-tests
 
     - name: Check configuration
       run: |

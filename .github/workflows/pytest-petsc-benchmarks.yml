@@ -65,11 +65,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        ${{ env.RUN_CMD }} mpiexec -n 1 pytest --cov --cov-config=.coveragerc --cov-report=xml ${{ env.TESTS }}
-
-    - name: Upload coverage to Codecov
-      if: "!contains(matrix.name, 'docker')"
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        name: ${{ matrix.name }}
+        ${{ env.RUN_CMD }} mpiexec -n 1 pytest ${{ env.TESTS }}

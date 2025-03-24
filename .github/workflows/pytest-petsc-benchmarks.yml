@@ -56,7 +56,7 @@ jobs:
 
     - name: Set tests
       run: |
-          echo "TESTS='tests/test_petsc.py'" >> $GITHUB_ENV
+          echo "TESTS='tests/test_petsc.py examples/Helmholtz/helmholtz.py'" >> $GITHUB_ENV
       id: set-tests
 
     - name: Check configuration

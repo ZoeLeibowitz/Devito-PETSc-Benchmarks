@@ -54,15 +54,14 @@ jobs:
       run: |
           echo "RUN_CMD=docker run --rm -t -v $(pwd)/tests:/app/tests -v $(pwd)/examples:/app/examples -w /app -e --name zoeleibowitz/devito_img:latest"  >> $GITHUB_ENV
 
-    - name: Set tests
-      run: |
-          echo "TESTS='tests/test_petsc.py examples/Helmholtz/helmholtz.py'" >> $GITHUB_ENV
-      id: set-tests
-
     - name: Check configuration
       run: |
         ${{ env.RUN_CMD }} python3 -c "from devito import configuration; print(''.join(['%s: %s \n' % (k, v) for (k, v) in configuration.items()]))"
 
-    - name: Test with pytest
+    - name: Run tests
       run: |
-        ${{ env.RUN_CMD }} mpiexec -n 1 pytest ${{ env.TESTS }}
+        ${{ env.RUN_CMD }} python3 -m pytest ${{ env.TESTS }}
+  
+    - name: Examples
+      run: |
+        ${{ env.RUN_CMD }} mpiexec -n 1 python3 examples/Helmholtz/helmholtz.py

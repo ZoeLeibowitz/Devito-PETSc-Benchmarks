@@ -43,7 +43,7 @@ jobs:
           sympy: "1.12"
 
     steps:
-    - name: Checkout devito
+    - name: Checkout Devito-PETSc-Benchmarks
       uses: actions/checkout@v4
 
     - name: Pull pre-built Docker image

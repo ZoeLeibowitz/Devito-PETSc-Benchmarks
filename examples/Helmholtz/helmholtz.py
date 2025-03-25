@@ -255,9 +255,6 @@ assert slope > 1.9
 assert slope < 2.1
 
 
-save_dir = "examples/Helmholtz/plots"
-os.makedirs(save_dir, exist_ok=True)
-
 # Plot convergence
 plt.figure(figsize=(8, 6))
 plt.loglog(h, errors, 'o-', label=f'Error (Slope: {slope:.2f})')
@@ -266,9 +263,5 @@ plt.ylabel("Error")
 plt.title("Convergence Plot: Error vs. dx")
 plt.grid(True, which="both", linestyle="--", linewidth=0.5)
 plt.legend()
-
-# plot_path = os.path.join(save_dir, "Helmholtz_convergence.png")
-# plt.savefig(plot_path, dpi=300)
-# plt.show()
 
 plt.savefig('/app/Helmholtz_convergence.png', dpi=300)

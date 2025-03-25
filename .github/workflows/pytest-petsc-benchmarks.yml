@@ -49,36 +49,16 @@ jobs:
     - name: Pull pre-built Docker image
       run: |
           docker pull zoeleibowitz/devito_img:latest
-
     - name: Set run prefix
       run: |
-          echo "RUN_CMD=docker run --rm -t -v $(pwd)/tests:/app/tests -v $(pwd)/examples:/app/examples -w /app -e --name zoeleibowitz/devito_img:latest"  >> $GITHUB_ENV
-
+          echo "RUN_CMD=docker run --rm -t -v $(pwd)/tests:/app/tests -v $(pwd)/examples:/app/examples -w /app --name testrun zoeleibowitz/devito_img:latest"  >> $GITHUB_ENV
     - name: Check configuration
       run: |
         ${{ env.RUN_CMD }} python3 -c "from devito import configuration; print(''.join(['%s: %s \n' % (k, v) for (k, v) in configuration.items()]))"
-
-    # - name: Run tests
-    #   run: |
-    #     ${{ env.RUN_CMD }} python3 -m pytest tests/test_petsc.py
+    - name: Run tests
+      run: |
+        ${{ env.RUN_CMD }} python3 -m pytest tests/test_petsc.py
   
     - name: Examples
       run: |
         ${{ env.RUN_CMD }} mpiexec -n 1 python3 examples/Helmholtz/helmholtz.py
-
-    - name: Commit and push generated plot
-      run: |
-        # Configure Git user to commit changes
-        git config --global user.email "ZoeLeibowitz@users.noreply.github.com"
-        git config --global user.name "ZoeLeibowitz"
-
-        # Add the generated plot to Git
-        git add examples/Helmholtz/plots/Helmholtz_convergence.png
-
-        # Commit the plot
-        git commit -m "Add Helmholtz convergence plot"
-
-        # Push changes back to the repository
-        git push origin HEAD:${{ github.ref }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

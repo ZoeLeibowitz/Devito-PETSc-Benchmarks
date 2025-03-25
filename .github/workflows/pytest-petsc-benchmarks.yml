@@ -65,3 +65,20 @@ jobs:
     - name: Examples
       run: |
         ${{ env.RUN_CMD }} mpiexec -n 1 python3 examples/Helmholtz/helmholtz.py
+
+    - name: Commit and push generated plot
+      run: |
+        # Configure Git user to commit changes
+        git config --global user.email "ZoeLeibowitz@users.noreply.github.com"
+        git config --global user.name "ZoeLeibowitz"
+
+        # Add the generated plot to Git
+        git add examples/Helmholtz/plots/Helmholtz_convergence.png
+
+        # Commit the plot
+        git commit -m "Add Helmholtz convergence plot"
+
+        # Push changes back to the repository
+        git push origin HEAD:${{ github.ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -249,13 +249,10 @@ for n in n_values:
     error =  np.linalg.norm(analytical_soln[:] - u.data[:]) / np.linalg.norm(analytical_soln[:])
     errors.append(error)
 
-print(errors)
 slope, _ = np.polyfit(np.log(h), np.log(errors), 1)
-print(slope)
 
 assert slope > 1.9
 assert slope < 2.1
-
 
 # Plot convergence
 plt.figure(figsize=(8, 6))

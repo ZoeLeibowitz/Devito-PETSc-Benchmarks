@@ -73,7 +73,7 @@ jobs:
         git config --global user.name "ZoeLeibowitz"
 
         # Add the generated plot to Git
-        git add examples/Helmholtz/plots/Helmholtz_convergence.png
+        git add examples/Helmholtz/Helmholtz_convergence.png
 
         # Commit the plot
         git commit -m "Add Helmholtz convergence plot"

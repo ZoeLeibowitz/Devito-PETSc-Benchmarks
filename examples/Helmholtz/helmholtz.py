@@ -264,4 +264,4 @@ plt.title("Convergence Plot: Error vs. dx")
 plt.grid(True, which="both", linestyle="--", linewidth=0.5)
 plt.legend()
 
-plt.savefig('/app/Helmholtz_convergence.png', dpi=300)
+plt.savefig('/app/examples/Helmholtz/Helmholtz_convergence.png', dpi=300)

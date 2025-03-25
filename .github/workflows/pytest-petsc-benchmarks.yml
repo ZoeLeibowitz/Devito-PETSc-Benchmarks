@@ -60,7 +60,7 @@ jobs:
 
     - name: Run tests
       run: |
-        ${{ env.RUN_CMD }} python3 -m pytest tests/test_petsc.py
+        ${{ env.RUN_CMD }} python3 -m pytest tests/test_petsc2.py
   
     # - name: Examples
     #   run: |

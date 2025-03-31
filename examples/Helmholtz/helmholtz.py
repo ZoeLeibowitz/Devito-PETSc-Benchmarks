@@ -3,7 +3,7 @@ import numpy as np
 
 from devito.symbolics import retrieve_functions, INT
 from devito import (configuration, Operator, Eq, Grid, Function,
-                    SubDomain, switchconfig, norm)
+                    SubDomain, switchconfig)
 from devito.petsc import PETScSolve
 from devito.petsc.initialize import PetscInitialize
 configuration['compiler'] = 'custom'
@@ -250,7 +250,7 @@ for n in n_values:
     analytical = analytical_solution(X, Y)
 
     diff = analytical[:] - u.data[:]
-    error = norm(diff) / np.linalg.norm(analytical[:])
+    error = np.linalg.norm(diff) / np.linalg.norm(analytical[:])
     errors.append(error)
 
 slope, _ = np.polyfit(np.log(h), np.log(errors), 1)

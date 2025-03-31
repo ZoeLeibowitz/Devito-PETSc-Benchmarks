@@ -253,15 +253,3 @@ slope, _ = np.polyfit(np.log(h), np.log(errors), 1)
 
 assert slope > 1.9
 assert slope < 2.1
-
-
-# Plot convergence
-plt.figure(figsize=(8, 6))
-plt.loglog(h, errors, 'o-', label=f'Error (Slope: {slope:.2f})')
-plt.xlabel("h")
-plt.ylabel("Error")
-plt.title("Convergence Plot: Error vs. dx")
-plt.grid(True, which="both", linestyle="--", linewidth=0.5)
-plt.legend()
-
-plt.savefig('/app/Helmholtz_convergence.png', dpi=300)

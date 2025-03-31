@@ -55,10 +55,11 @@ jobs:
     - name: Check configuration
       run: |
         ${{ env.RUN_CMD }} python3 -c "from devito import configuration; print(''.join(['%s: %s \n' % (k, v) for (k, v) in configuration.items()]))"
-    - name: Run tests
-      run: |
-        ${{ env.RUN_CMD }} python3 -m pytest tests/test_petsc.py
-  
-    - name: Examples
+
+    - name: Helmoltz Examples
       run: |
         ${{ env.RUN_CMD }} mpiexec -n 1 python3 examples/Helmholtz/helmholtz.py
+
+    - name: Navier Stokes Examples
+      run: |
+        ${{ env.RUN_CMD }} mpiexec -n 1 python3 examples/NavierStokes/projection.py

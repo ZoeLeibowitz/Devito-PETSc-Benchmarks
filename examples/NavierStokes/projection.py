@@ -6,7 +6,6 @@ from devito.symbolics import retrieve_functions, INT
 import pandas as pd
 from devito import configuration
 from devito.petsc.initialize import PetscInitialize
-# configuration['opt'] = 'noop'
 configuration['compiler'] = 'custom'
 os.environ['CC'] = 'mpicc'  
 

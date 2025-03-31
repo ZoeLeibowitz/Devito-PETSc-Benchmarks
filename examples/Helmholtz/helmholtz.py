@@ -2,7 +2,6 @@ import os
 import numpy as np
 
 from devito.symbolics import retrieve_functions, INT
-from matplotlib import pyplot as plt
 from devito import (configuration, Operator, Eq, Grid, Function,
                     SubDomain, switchconfig)
 from devito.petsc import PETScSolve
@@ -203,6 +202,8 @@ sub6 = SubPointBottomRight()
 sub7 = SubPointTopLeft()
 sub8 = SubPointTopRight()
 
+subdomains = (sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8)
+
 
 def analytical_solution(x, y):
     return np.cos(2*np.pi*x)*np.cos(2*np.pi*y)
@@ -214,7 +215,9 @@ errors = []
 
 
 for n in n_values:
-    grid = Grid(shape=(n, n), extent=(Lx, Ly), subdomains=(sub1,sub2,sub3,sub4,sub5,sub6,sub7,sub8), dtype=np.float64)
+    grid = Grid(
+        shape=(n, n), extent=(Lx, Ly), subdomains=subdomains, dtype=np.float64
+    )
     time = grid.time_dim
     t = grid.stepping_dim
     x, y = grid.dimensions
@@ -233,10 +236,10 @@ for n in n_values:
     bcs += [neumann_bottom(eqn, sub2)]
     bcs += [neumann_left(eqn, sub3)]
     bcs += [neumann_right(eqn, sub4)]
-    bcs += [neumann_left(neumann_bottom(eqn, sub5), sub5)] # left bottom
-    bcs += [neumann_right(neumann_bottom(eqn, sub6), sub6)] # right bottom
-    bcs += [neumann_left(neumann_top(eqn, sub7), sub7)] # left top
-    bcs += [neumann_right(neumann_top(eqn, sub8), sub8)] # right top
+    bcs += [neumann_left(neumann_bottom(eqn, sub5), sub5)]
+    bcs += [neumann_right(neumann_bottom(eqn, sub6), sub6)]
+    bcs += [neumann_left(neumann_top(eqn, sub7), sub7)]
+    bcs += [neumann_right(neumann_top(eqn, sub8), sub8)]
 
     solver = PETScSolve([eqn]+bcs, target=u, solver_parameters={'rtol': 1e-8})
 
@@ -244,9 +247,10 @@ for n in n_values:
         op = Operator(solver)
         op.apply()
 
-    analytical_soln = analytical_solution(X, Y)
+    analytical = analytical_solution(X, Y)
 
-    error =  np.linalg.norm(analytical_soln[:] - u.data[:]) / np.linalg.norm(analytical_soln[:])
+    diff = np.linalg.norm(analytical[:] - u.data[:])
+    error = diff / np.linalg.norm(analytical[:])
     errors.append(error)
 
 slope, _ = np.polyfit(np.log(h), np.log(errors), 1)

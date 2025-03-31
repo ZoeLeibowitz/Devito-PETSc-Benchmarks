@@ -1,18 +1,19 @@
 import os
+import numpy as np
 
-from devito import *
-from devito.petsc import PETScSolve, EssentialBC
+from devito import (Grid, TimeFunction, Function, Constant, Eq,
+                    Operator, norm, SubDomain, switchconfig, configuration)
 from devito.symbolics import retrieve_functions, INT
-import pandas as pd
-from devito import configuration
+
+from devito.petsc import PETScSolve, EssentialBC
 from devito.petsc.initialize import PetscInitialize
 configuration['compiler'] = 'custom'
-os.environ['CC'] = 'mpicc'  
+os.environ['CC'] = 'mpicc'
 
 
 PetscInitialize()
 
-# chorins projection
+# Chorin's projection method
 
 # Physical parameters
 rho = Constant(name='rho', dtype=np.float64)
@@ -37,6 +38,7 @@ so = 2
 # Use subdomains just for pressure field for now
 class SubTop(SubDomain):
     name = 'subtop'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -44,10 +46,11 @@ class SubTop(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('middle', 1, 1), y: ('right', self.S_O//2)}
-sub1 = SubTop(so)
+
 
 class SubBottom(SubDomain):
     name = 'subbottom'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -55,10 +58,11 @@ class SubBottom(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('middle', 1, 1), y: ('left', self.S_O//2)}
-sub2 = SubBottom(so)
+
 
 class SubLeft(SubDomain):
     name = 'subleft'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -66,10 +70,11 @@ class SubLeft(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('left', self.S_O//2), y: ('middle', 1, 1)}
-sub3 = SubLeft(so)
+
 
 class SubRight(SubDomain):
     name = 'subright'
+
     def __init__(self, S_O):
         super().__init__()
         self.S_O = S_O
@@ -77,39 +82,38 @@ class SubRight(SubDomain):
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('right', self.S_O//2), y: ('middle', 1, 1)}
-sub4 = SubRight(so)
 
 
 class SubPointBottomLeft(SubDomain):
     name = 'subpointbottomleft'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('left', 1), y: ('left', 1)}
-sub5 = SubPointBottomLeft()
 
 
 class SubPointBottomRight(SubDomain):
     name = 'subpointbottomright'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('right', 1), y: ('left', 1)}
-sub6 = SubPointBottomRight()
 
-# from IPython import embed; embed()
+
 class SubPointTopLeft(SubDomain):
     name = 'subpointtopleft'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('left', 1), y: ('right', 1)}
-sub7 = SubPointTopLeft()
 
 
 class SubPointTopRight(SubDomain):
     name = 'subpointtopright'
+
     def define(self, dimensions):
         x, y = dimensions
         return {x: ('right', 1), y: ('right', 1)}
-sub8 = SubPointTopRight()
 
 
 def neumann_bottom(eq, subdomain):
@@ -172,7 +176,8 @@ def neumann_left(eq, subdomain):
         xind = f.indices[-2]
         if (xind - x).as_coeff_Mul()[0] < 0:
             # Symmetric mirror
-            # Substitute where index is negative for +ve where index is positive
+            # Substitute where index is negative for +ve
+            # where index is positive
             if f.name == 'pn1':
                 mapper.update({f: f.subs({xind: INT(abs(xind))})})
 
@@ -201,7 +206,20 @@ def neumann_right(eq, subdomain):
     return Eq(lhs.subs(mapper), rhs.subs(mapper), subdomain=subdomain)
 
 
-grid = Grid(shape=(nx, ny), extent=(Lx, Ly), subdomains=(sub1,sub2,sub3,sub4,sub5,sub6,sub7,sub8), dtype=np.float64)
+sub1 = SubTop(so)
+sub2 = SubBottom(so)
+sub3 = SubLeft(so)
+sub4 = SubRight(so)
+sub5 = SubPointBottomLeft()
+sub6 = SubPointBottomRight()
+sub7 = SubPointTopLeft()
+sub8 = SubPointTopRight()
+
+subdomains = (sub1, sub2, sub3, sub4, sub5, sub6, sub7, sub8)
+
+grid = Grid(
+    shape=(nx, ny), extent=(Lx, Ly), subdomains=subdomains, dtype=np.float64
+)
 time = grid.time_dim
 t = grid.stepping_dim
 x, y = grid.dimensions
@@ -217,7 +235,8 @@ pn1 = Function(name='pn1', grid=grid, space_order=2, dtype=np.float64)
 
 pn1.data[:] = 0.
 
-eq_pn1 = Eq(pn1.laplace,rho*(1./dt*(u1.forward.dxc+v1.forward.dyc)),  subdomain=grid.interior)
+eq_pn1 = Eq(pn1.laplace, rho*(1./dt*(u1.forward.dxc+v1.forward.dyc)),
+            subdomain=grid.interior)
 
 
 bc_pn1 = [neumann_top(eq_pn1, sub1)]
@@ -230,19 +249,20 @@ bc_pn1 += [neumann_left(neumann_top(eq_pn1, sub7), sub7)]
 bc_pn1 += [neumann_right(neumann_top(eq_pn1, sub8), sub8)]
 
 
-petsc1 = PETScSolve([eq_pn1]+bc_pn1, pn1)
+eqn_p = PETScSolve([eq_pn1]+bc_pn1, pn1)
 
 eq_u1 = Eq(u1.dt + u1*u1.dxc + v1*u1.dyc, nu*u1.laplace)
 eq_v1 = Eq(v1.dt + u1*v1.dxc + v1*v1.dyc, nu*v1.laplace)
 
-update_u = Eq(u1.forward, u1.forward - (dt/rho)*(pn1.dxc), subdomain=grid.interior)
-update_v = Eq(v1.forward, v1.forward - (dt/rho)*(pn1.dyc), subdomain=grid.interior)
+update_u = Eq(u1.forward, u1.forward - (dt/rho)*(pn1.dxc),
+              subdomain=grid.interior)
 
+update_v = Eq(v1.forward, v1.forward - (dt/rho)*(pn1.dyc),
+              subdomain=grid.interior)
 
 # TODO: will not need this anymore due to initial guess CB
 u1.data[0, :, -1] = np.float64(1.)
 u1.data[1, :, -1] = np.float64(1.)
-
 
 # Create Dirichlet BC expressions for velocity
 bc_u1 = [Eq(u1[t+1, x, ny-1], 1.)]  # top
@@ -254,7 +274,6 @@ bc_v1 += [Eq(v1[t+1, nx-1, y], 0.)]  # right
 bc_v1 += [Eq(v1[t+1, x, ny-1], 0.)]  # top
 bc_v1 += [Eq(v1[t+1, x, 0], 0.)]  # bottom
 
-
 # Create Dirichlet BC expressions for velocity
 bc_petsc_u1 = [EssentialBC(u1.forward, 1., subdomain=sub1)]  # top
 bc_petsc_u1 += [EssentialBC(u1.forward, 0., subdomain=sub3)]  # left
@@ -265,14 +284,13 @@ bc_petsc_v1 += [EssentialBC(v1.forward, 0., subdomain=sub4)]  # right
 bc_petsc_v1 += [EssentialBC(v1.forward, 0., subdomain=sub1)]  # top
 bc_petsc_v1 += [EssentialBC(v1.forward, 0., subdomain=sub2)]  # bottom
 
+tentu = PETScSolve([eq_u1]+bc_petsc_u1, u1.forward)
+tentv = PETScSolve([eq_v1]+bc_petsc_v1, v1.forward)
 
-petsc_tentu = PETScSolve([eq_u1]+bc_petsc_u1, u1.forward)
-petsc_tentv = PETScSolve([eq_v1]+bc_petsc_v1, v1.forward)
-
-exprs1 = petsc_tentu + petsc_tentv + petsc1 + [update_u, update_v] + bc_u1 + bc_v1
+exprs = tentu + tentv + eqn_p + [update_u, update_v] + bc_u1 + bc_v1
 
 with switchconfig(language='petsc'):
-    op = Operator(exprs1)
+    op = Operator(exprs)
     op.apply(time_m=0, time_M=ns-1, dt=dt)
 
 u1_norm = norm(u1)

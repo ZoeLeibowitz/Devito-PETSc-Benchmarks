@@ -11,6 +11,7 @@ configuration['compiler'] = 'custom'
 os.environ['CC'] = 'mpicc'
 
 # Modified Helmholtz equation
+# Ref - https://www.firedrakeproject.org/demos/helmholtz.py.html
 
 PetscInitialize()
 
@@ -249,8 +250,8 @@ for n in n_values:
 
     analytical = analytical_solution(X, Y)
 
-    diff = np.linalg.norm(analytical[:] - u.data[:])
-    error = diff / np.linalg.norm(analytical[:])
+    diff = analytical[:] - u.data[:]
+    error = norm(diff) / np.linalg.norm(analytical[:])
     errors.append(error)
 
 slope, _ = np.polyfit(np.log(h), np.log(errors), 1)

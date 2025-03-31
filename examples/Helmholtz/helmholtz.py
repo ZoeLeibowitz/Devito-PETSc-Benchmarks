@@ -240,7 +240,7 @@ for n in n_values:
 
     solver = PETScSolve([eqn]+bcs, target=u, solver_parameters={'rtol': 1e-8})
 
-    with switchconfig(openmp=False):
+    with switchconfig(openmp=False, language='petsc'):
         op = Operator(solver)
         op.apply()
 

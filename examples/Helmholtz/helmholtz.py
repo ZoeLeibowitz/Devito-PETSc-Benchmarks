@@ -3,10 +3,9 @@ import numpy as np
 
 from devito.symbolics import retrieve_functions, INT
 from devito import (configuration, Operator, Eq, Grid, Function,
-                    SubDomain, switchconfig)
+                    SubDomain, switchconfig, norm)
 from devito.petsc import PETScSolve
 from devito.petsc.initialize import PetscInitialize
-configuration['opt'] = 'noop'
 configuration['compiler'] = 'custom'
 os.environ['CC'] = 'mpicc'
 

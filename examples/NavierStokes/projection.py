@@ -260,10 +260,6 @@ update_u = Eq(u1.forward, u1.forward - (dt/rho)*(pn1.dxc),
 update_v = Eq(v1.forward, v1.forward - (dt/rho)*(pn1.dyc),
               subdomain=grid.interior)
 
-# TODO: will not need this anymore due to initial guess CB
-u1.data[0, :, -1] = np.float64(1.)
-u1.data[1, :, -1] = np.float64(1.)
-
 # Create Dirichlet BC expressions for velocity
 bc_u1 = [Eq(u1[t+1, x, ny-1], 1.)]  # top
 bc_u1 += [Eq(u1[t+1, 0, y], 0.)]  # left
